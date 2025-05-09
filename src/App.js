@@ -1,18 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { ClientSideRowModelModule } from 'ag-grid-community';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { AppBar, Toolbar, Typography, Box, Container, TextField, Button } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { AppBar, Toolbar, Typography, Box, Container, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField } from '@mui/material';
 import './App.css';
 
 function App() {
-  const gridRef = useRef();
   const fileInputRef = useRef(null);
   const [rowData, setRowData] = useState([]);
-  const [columnDefs, setColumnDefs] = useState([]);
-  const [gridApi, setGridApi] = useState(null);
   const [languages, setLanguages] = useState([]);
+  const [editingCell, setEditingCell] = useState(null); // track which cell is being edited
 
   // Process uploaded properties files
   const processFiles = (files) => {
@@ -70,33 +64,9 @@ function App() {
         return row;
       });
       
-      // Create column definitions
-      const cols = [
-        { 
-          field: 'key', 
-          headerName: 'Key', 
-          pinned: 'left',
-          width: 250,
-          filter: true,
-          sortable: true,
-          resizable: true,
-          lockPosition: true
-        },
-        ...uploadedLanguages.map(lang => ({
-          field: lang,
-          headerName: lang,
-          editable: true,
-          width: 300,
-          cellRenderer: TranslationCellRenderer,
-          cellEditor: 'agTextCellEditor',
-          filter: true,
-          sortable: true,
-          resizable: true
-        }))
-      ];
-      
+      // Create row data for the table
       setRowData(data);
-      setColumnDefs(cols);
+      // No need to set column definitions with our new table approach
       console.log('Data updated with imported files:', data);
     });
   };
@@ -113,202 +83,92 @@ function App() {
     // Initialize empty state
     setLanguages([]);
     setRowData([]);
-    
-    // Create basic column definition with just the key column
-    const cols = [
-      { 
-        field: 'key', 
-        headerName: 'Key', 
-        pinned: 'left',
-        width: 250,
-        filter: true,
-        sortable: true,
-        resizable: true,
-        lockPosition: true
-      }
-    ];
-    
-    setColumnDefs(cols);
     console.log('App initialized with empty state');
   }, []);
+  
+  // Handle cell editing
+  const handleCellEdit = (key, language, newValue) => {
+    setRowData(prevData => 
+      prevData.map(row => 
+        row.key === key ? { ...row, [language]: newValue } : row
+      )
+    );
+  };
+  
+  // Start editing a cell
+  const startEditing = (key, language) => {
+    setEditingCell({ key, language });
+  };
+  
+  // Handle key navigation with tab
+  const handleKeyDown = (event, key, language) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      const currentIndex = languages.indexOf(language);
+      let nextLanguage;
+      let nextKey = key;
+      
+      // If we're at the last language, move to the next key
+      if (currentIndex === languages.length - 1) {
+        const currentRowIndex = rowData.findIndex(row => row.key === key);
+        if (currentRowIndex < rowData.length - 1) {
+          nextLanguage = languages[0];
+          nextKey = rowData[currentRowIndex + 1].key;
+        } else {
+          nextLanguage = languages[0];
+        }
+      } else {
+        // Move to the next language in the same row
+        nextLanguage = languages[currentIndex + 1];
+      }
+      
+      // Move to the next cell
+      setEditingCell({ key: nextKey, language: nextLanguage });
+    }
+  };
 
-  // Cell renderer for displaying translations with validation
-  const TranslationCellRenderer = (props) => {
-    const value = props.value || '';
+  // Render a cell with appropriate styling and editing capability
+  const renderCell = (row, language) => {
+    const isEditing = editingCell && editingCell.key === row.key && editingCell.language === language;
+    const value = row[language] || '';
     const isEmpty = value === '';
     
-    return (
-      <div style={{ 
-        padding: '8px', 
-        height: '100%', 
-        width: '100%',
-        backgroundColor: isEmpty ? '#fff8e1' : 'inherit', 
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        {isEmpty ? 
-          <span style={{ color: '#bdbdbd', fontStyle: 'italic' }}>Empty</span> : 
-          value
-        }
-      </div>
-    );
-  };
-
-  // Custom cell editor component for AG Grid
-  class TranslationCellEditor {
-    // Required by AG Grid
-    init(params) {
-      this.params = params;
-      this.value = params.value || '';
-      
-      // Create the cell
-      this.eInput = document.createElement('input');
-      this.eInput.classList.add('ag-input-field-input');
-      this.eInput.style.height = '100%';
-      this.eInput.style.width = '100%';
-      this.eInput.style.padding = '5px';
-      this.eInput.value = this.value;
-      
-      // Add event listeners
-      this.eInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Tab') {
-          params.stopEditing();
-        }
-      });
-    }
-    
-    // Required by AG Grid - returns the DOM element
-    getGui() {
-      return this.eInput;
-    }
-    
-    // Required by AG Grid - returns the current value
-    getValue() {
-      return this.eInput.value;
-    }
-    
-    // Required by AG Grid - focus the editor
-    afterGuiAttached() {
-      this.eInput.focus();
-    }
-  }
-  
-  // Legacy React-based cell editor component - keeping for reference
-  const ReactTranslationCellEditor = (props) => {
-    const [value, setValue] = useState(props.value || '');
-    const [suggestedValue, setSuggestedValue] = useState('');
-    const inputRef = useRef(null);
-    
-    useEffect(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, []);
-    
-    const handleKeyDown = (event) => {
-      if (event.key === 'Tab') {
-        props.stopEditing();
-      }
-    };
-    
-    const handleChange = (event) => {
-      setValue(event.target.value);
-    };
-    
-    // Suggest translation (simplified example)
-    const suggestTranslation = () => {
-      // Get value from another language column as suggestion
-      // In real app, this would call a translation API
-      const rowData = props.node.data;
-      const currentLang = props.column.colId;
-      
-      // Find a non-empty value from another language
-      const otherLangs = Object.keys(rowData).filter(key => 
-        key !== 'key' && key !== currentLang && rowData[key]
-      );
-      
-      if (otherLangs.length > 0) {
-        const sourceLang = otherLangs[0];
-        setSuggestedValue(rowData[sourceLang]);
-      }
-    };
-    
-    const applySuggestion = () => {
-      if (suggestedValue) {
-        setValue(suggestedValue);
-      }
-    };
-    
-    // This is required by AG Grid
-    const getValue = () => {
-      return value;
-    };
-    
-    return (
-      <div style={{ padding: '5px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+    if (isEditing) {
+      return (
         <TextField
-          inputRef={inputRef}
-          value={value}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          variant="outlined"
           fullWidth
+          variant="standard"
+          autoFocus
+          value={value}
+          onChange={(e) => handleCellEdit(row.key, language, e.target.value)}
+          onBlur={() => setEditingCell(null)}
+          onKeyDown={(e) => handleKeyDown(e, row.key, language)}
           size="small"
-          multiline
         />
-        
-        <div style={{ display: 'flex', gap: '5px' }}>
-          <Button 
-            size="small" 
-            variant="outlined" 
-            onClick={suggestTranslation}
-          >
-            Suggest
-          </Button>
-          
-          {suggestedValue && (
-            <Button 
-              size="small" 
-              variant="contained" 
-              onClick={applySuggestion}
-            >
-              Use: {suggestedValue.substring(0, 15)}{suggestedValue.length > 15 ? '...' : ''}
-            </Button>
-          )}
-        </div>
-      </div>
+      );
+    }
+    
+    return (
+      <Box 
+        onClick={() => startEditing(row.key, language)}
+        sx={{
+          bgcolor: isEmpty ? '#fff8e1' : 'transparent',
+          p: 1,
+          minHeight: '36px',
+          width: '100%',
+          cursor: 'pointer',
+          '&:hover': { bgcolor: '#f5f5f5' }
+        }}
+      >
+        {isEmpty ? (
+          <Typography variant="body2" sx={{ color: '#bdbdbd', fontStyle: 'italic' }}>
+            Empty
+          </Typography>
+        ) : (
+          value
+        )}
+      </Box>
     );
-  };
-  
-  // Handle grid ready event
-  const onGridReady = (params) => {
-    setGridApi(params.api);
-    
-    // Instead of using sizeColumnsToFit, we'll manually ensure columns have appropriate widths
-    // This avoids needing additional modules
-    
-    // Simpler approach without using problematic APIs
-    const updateGridSize = () => {
-      if (params.api) {
-        // Just force a small delay to let the grid initialize
-        setTimeout(() => {
-          // No API calls, just let the grid render naturally
-          const gridElement = document.querySelector('.ag-theme-alpine');
-          if (gridElement) {
-            gridElement.style.height = 'calc(100vh - 80px)';
-          }
-        }, 0);
-      }
-    };
-    
-    updateGridSize();
-    window.addEventListener('resize', updateGridSize);
-  };
-  
-  // Handle cell value changes
-  const onCellValueChanged = (params) => {
-    console.log('Cell value changed:', params.newValue);
-    // In a real app, you would save this to the properties file
   };
 
   // Function to download files
@@ -328,15 +188,6 @@ function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-  
-  const defaultColDef = {
-    flex: 1,
-    minWidth: 150,
-    resizable: true,
-    sortable: true,
-    filter: true,
-    editable: true  // Make sure all columns are editable by default
   };
 
   return (
@@ -377,30 +228,66 @@ function App() {
         </Toolbar>
       </AppBar>
       
-      <Container maxWidth={false} sx={{ mt: 2, height: 'calc(100vh - 80px)' }}>
-        <Box 
-          className="ag-theme-alpine" 
-          sx={{ 
-            height: '100%', 
-            width: '100%'
-          }}
-        >
-          <AgGridReact
-            ref={gridRef}
-            modules={[ClientSideRowModelModule]}
-            rowData={rowData}
-            columnDefs={columnDefs}
-            defaultColDef={defaultColDef}
-            rowHeight={60}
-            onGridReady={onGridReady}
-            onCellValueChanged={onCellValueChanged}
-            singleClickEdit={true}
-            enableCellTextSelection
-            ensureDomOrder
-            suppressRowClickSelection
-            tabToNextCell={(params) => params.nextCellPosition}
-          />
-        </Box>
+      <Container maxWidth={false} sx={{ mt: 2, height: 'calc(100vh - 80px)', overflow: 'auto' }}>
+        {rowData.length > 0 ? (
+          <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 100px)' }}>
+            <Table stickyHeader sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 2,
+                      bgcolor: '#f5f5f5',
+                      minWidth: '250px'
+                    }}
+                  >
+                    Key
+                  </TableCell>
+                  {languages.map(lang => (
+                    <TableCell key={lang} sx={{ fontWeight: 'bold', minWidth: '250px' }}>
+                      {lang}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rowData.map(row => (
+                  <TableRow key={row.key} hover>
+                    <TableCell 
+                      component="th" 
+                      scope="row"
+                      sx={{ 
+                        position: 'sticky',
+                        left: 0,
+                        zIndex: 1,
+                        bgcolor: 'white',
+                        fontWeight: 'bold',
+                        borderRight: '1px solid #ddd'
+                      }}
+                    >
+                      {row.key}
+                    </TableCell>
+                    {languages.map(lang => (
+                      <TableCell key={`${row.key}-${lang}`}>
+                        {renderCell(row, lang)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h6">No data available</Typography>
+            <Typography variant="body2">
+              Please upload .properties files using the upload button above.
+            </Typography>
+          </Box>
+        )}
       </Container>
     </div>
   );
