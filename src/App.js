@@ -144,6 +144,14 @@ function App() {
           onBlur={() => setEditingCell(null)}
           onKeyDown={(e) => handleKeyDown(e, row.key, language)}
           size="small"
+          InputProps={{
+            style: { 
+              fontSize: '0.875rem',
+              padding: '2px 4px',
+              height: '24px'
+            }
+          }}
+          sx={{ m: 0 }}
         />
       );
     }
@@ -153,10 +161,11 @@ function App() {
         onClick={() => startEditing(row.key, language)}
         sx={{
           bgcolor: isEmpty ? '#fff8e1' : 'transparent',
-          p: 1,
-          minHeight: '36px',
+          p: 0.5,
+          minHeight: '24px',
           width: '100%',
           cursor: 'pointer',
+          fontSize: '0.875rem',
           '&:hover': { bgcolor: '#f5f5f5' }
         }}
       >
@@ -241,13 +250,20 @@ function App() {
                       left: 0,
                       zIndex: 2,
                       bgcolor: '#f5f5f5',
-                      minWidth: '250px'
+                      minWidth: '200px',
+                      padding: '6px 8px',
+                      fontSize: '0.875rem'
                     }}
                   >
                     Key
                   </TableCell>
                   {languages.map(lang => (
-                    <TableCell key={lang} sx={{ fontWeight: 'bold', minWidth: '250px' }}>
+                    <TableCell key={lang} sx={{ 
+                      fontWeight: 'bold', 
+                      minWidth: '200px',
+                      padding: '6px 8px',
+                      fontSize: '0.875rem'
+                    }}>
                       {lang}
                     </TableCell>
                   ))}
@@ -265,13 +281,15 @@ function App() {
                         zIndex: 1,
                         bgcolor: 'white',
                         fontWeight: 'bold',
-                        borderRight: '1px solid #ddd'
+                        borderRight: '1px solid #ddd',
+                        padding: '4px 8px',
+                        fontSize: '0.875rem'
                       }}
                     >
                       {row.key}
                     </TableCell>
                     {languages.map(lang => (
-                      <TableCell key={`${row.key}-${lang}`}>
+                      <TableCell key={`${row.key}-${lang}`} sx={{ padding: '0' }}>
                         {renderCell(row, lang)}
                       </TableCell>
                     ))}
