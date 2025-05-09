@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+# Properties File Editor
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Properties File Editor Screenshot](public/screenshot.png)
 
-## Available Scripts
+A powerful web application for editing and managing Java .properties files for internationalization (i18n) and localization. This tool allows you to easily edit translation files side by side, identify missing translations, and export your changes.
 
-In the project directory, you can run:
+## 🌐 Live Demo
 
-### `npm start`
+Try it now: [https://rs-bundle-editor.windsurf.build](https://rs-bundle-editor.windsurf.build)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## ✨ Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Multi-Language Support**: Edit multiple language files side by side in a unified interface
+- **Visual Indicators**: Missing translations are highlighted with a yellow background
+- **Inline Editing**: Click on any cell to edit content directly
+- **Keyboard Navigation**: Use Tab key to move between cells for efficient editing
+- **Upload Functionality**: Easily import .properties files
+- **Download Options**: Export all translations as a single ZIP archive
+- **Responsive Design**: Does not work well on smaller mobile devices
 
-### `npm test`
+## 🔧 Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
 
-### `npm run build`
+- Node.js (v14.0.0 or higher)
+- npm (v6.0.0 or higher)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Local Setup
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/morja/resource-bundle-editor.git
+   cd resource-bundle-editor
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### `npm run eject`
+3. Start the development server:
+   ```bash
+   npm start
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Production Build
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+To create a production build:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run build
+```
 
-## Learn More
+The optimized files will be available in the `build` folder.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📝 How to Use
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Upload Files**: Click the "Upload Files" button to select your .properties files
 
-### Code Splitting
+2. **Edit Translations**: Click on any cell to edit the value. Press Tab to move to the next cell, or Enter to save and stay in the current cell
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. **Download Files**: Click the "Download All" button to download a ZIP file containing all your language files with the latest changes
 
-### Analyzing the Bundle Size
+## 🧩 File Format
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The application supports standard Java .properties files in the following format:
 
-### Making a Progressive Web App
+```properties
+key1=value1
+key2=value2
+# This is a comment
+key3=value3 with spaces
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🚀 Deployment
 
-### Advanced Configuration
+This application can be easily deployed to Netlify, Vercel, or any static site hosting service:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Netlify Deployment
 
-### Deployment
+1. Fork this repository
+2. Sign up/in to [Netlify](https://www.netlify.com/)
+3. Click "New site from Git" and select your fork
+4. Use the following settings:
+   - Build command: `npm run build`
+   - Publish directory: `build`
+5. Click "Deploy site"
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 💡 Contributing
 
-### `npm run build` fails to minify
+Contributions are welcome! Feel free to submit issues or pull requests.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
