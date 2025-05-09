@@ -1,0 +1,51 @@
+[general]
+# Prioritize brevity and concise explanations
+be_concise = true
+show_thought_process = false
+skip_unnecessary_details = true
+
+[code]
+# Default rules for code generation and editing
+prefer_modern_js = true
+reduce_boilerplate = true
+use_functional_approach = true
+follow_material_ui_patterns = true
+use_jsx_syntax = true
+
+[ui_style]
+# UI styling preferences
+compact_tables = true
+modern_interface = true
+responsive_design = true
+
+[react]
+# React-specific preferences
+use_hooks = true
+prefer_functional_components = true
+use_material_ui = true
+use_jsx_syntax = true
+
+[file_handling]
+# File operations preferences
+auto_create_missing_dependencies = true
+suggest_optimizations = true
+generate_complete_implementations = true
+
+[deployment]
+# Deployment preferences
+platform = "netlify"
+auto_fix_build_errors = true
+
+[communication]
+# Communication style preferences
+direct_answers = true
+skip_pleasantries = true
+focus_on_solution = true
+
+[more]
+# More general coding preferences
+Please also make sure not to make changes to existing code that are not really necessary or asked for.
+Also, please remove code that you have prevously created but that is not necessary anymore.
+And when going to make a bigger changed like removing functionality or changing an underlying tool, plese first ask.
+Always try to use the most simple approach and in a way that it can later be easily understood and maintained.
+Avoid repetitive code and use abstraction and patterns where appropriate.
