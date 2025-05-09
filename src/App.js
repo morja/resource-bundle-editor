@@ -182,6 +182,7 @@ function App() {
   };
 
   // Function to download individual language files
+  // eslint-disable-next-line no-unused-vars
   const downloadPropertiesFile = (language) => {
     // Get all data for this language
     const fileContent = rowData.map(row => {
