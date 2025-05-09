@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppBar, Toolbar, Typography, Box, Container, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField } from '@mui/material';
+import JSZip from 'jszip';
 import './App.css';
 
 function App() {
@@ -180,7 +181,7 @@ function App() {
     );
   };
 
-  // Function to download files
+  // Function to download individual language files
   const downloadPropertiesFile = (language) => {
     // Get all data for this language
     const fileContent = rowData.map(row => {
@@ -197,6 +198,43 @@ function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+  
+  // Function to download all language files as a zip
+  const downloadAllFiles = async () => {
+    if (languages.length === 0 || rowData.length === 0) return;
+    
+    try {
+      // Create a new JSZip instance
+      const zip = new JSZip();
+      
+      // Add each language file to the zip
+      languages.forEach(language => {
+        // Create the file content
+        const fileContent = rowData.map(row => {
+          return `${row.key}=${row[language] || ''}`;
+        }).join('\n');
+        
+        // Add the file to the zip
+        zip.file(`${language}.properties`, fileContent);
+      });
+      
+      // Generate the zip file
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      
+      // Create download link and trigger download
+      const url = URL.createObjectURL(zipContent);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'properties-files.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error creating zip file:', error);
+      alert('Failed to create zip file. Please try downloading files individually.');
+    }
   };
 
   return (
@@ -224,16 +262,16 @@ function App() {
             Upload Files
           </Button>
           
-          {languages.length > 0 && languages.map(language => (
+          {languages.length > 0 && (
             <Button
-              key={language}
-              color="inherit"
-              onClick={() => downloadPropertiesFile(language)}
-              sx={{ mr: 1 }}
+              color="primary"
+              variant="contained"
+              onClick={downloadAllFiles}
+              sx={{ mr: 2 }}
             >
-              {language}.properties
+              Download All
             </Button>
-          ))}
+          )}
         </Toolbar>
       </AppBar>
       
