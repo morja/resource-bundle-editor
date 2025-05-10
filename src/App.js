@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppBar, Toolbar, Typography, Box, Container, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Container, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, IconButton, Tooltip } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import JSZip from 'jszip';
 import './App.css';
 
@@ -96,15 +98,54 @@ function App() {
     );
   };
   
+  // Delete a row by key
+  const handleDeleteRow = (key) => {
+    setRowData(prevData => prevData.filter(row => row.key !== key));
+  };
+  
+  // Add a new row
+  const handleAddRow = () => {
+    // Generate a unique key with timestamp
+    const newKey = `new.key.${Date.now()}`;
+    
+    // Create a new row with empty values for all languages
+    const newRow = { key: newKey };
+    languages.forEach(lang => {
+      newRow[lang] = '';
+    });
+    
+    // Add the new row to the data
+    setRowData(prevData => [...prevData, newRow]);
+    
+    // Start editing the key of the new row
+    setTimeout(() => {
+      setEditingCell({ key: newKey, field: 'key' });
+    }, 100);
+  };
+  
   // Start editing a cell
   const startEditing = (key, language) => {
-    setEditingCell({ key, language });
+    setEditingCell({ key, language, field: 'value' });
+  };
+  
+  // Start editing a key
+  const startEditingKey = (key) => {
+    setEditingCell({ key, field: 'key' });
   };
   
   // Handle key navigation with tab
   const handleKeyDown = (event, key, language) => {
     if (event.key === 'Tab') {
       event.preventDefault();
+      
+      if (editingCell.field === 'key') {
+        // If editing a key, move to the first language cell
+        if (languages.length > 0) {
+          setEditingCell({ key, language: languages[0], field: 'value' });
+        }
+        return;
+      }
+      
       const currentIndex = languages.indexOf(language);
       let nextLanguage;
       let nextKey = key;
@@ -124,13 +165,33 @@ function App() {
       }
       
       // Move to the next cell
-      setEditingCell({ key: nextKey, language: nextLanguage });
+      setEditingCell({ key: nextKey, language: nextLanguage, field: 'value' });
     }
+  };
+  
+  // Handle key changes
+  const handleKeyChange = (oldKey, newKey) => {
+    if (oldKey === newKey) {
+      return;
+    }
+    
+    // Check if the new key already exists
+    if (rowData.some(row => row.key === newKey)) {
+      alert(`Key '${newKey}' already exists. Please choose a different key.`);
+      return;
+    }
+    
+    // Update the key in rowData
+    setRowData(prevData => 
+      prevData.map(row => 
+        row.key === oldKey ? { ...row, key: newKey } : row
+      )
+    );
   };
 
   // Render a cell with appropriate styling and editing capability
   const renderCell = (row, language) => {
-    const isEditing = editingCell && editingCell.key === row.key && editingCell.language === language;
+    const isEditing = editingCell && editingCell.key === row.key && editingCell.language === language && editingCell.field === 'value';
     const value = row[language] || '';
     const isEmpty = value === '';
     
@@ -177,6 +238,54 @@ function App() {
         ) : (
           value
         )}
+      </Box>
+    );
+  };
+  
+  // Render a key cell with editing capability
+  const renderKeyCell = (row) => {
+    const isEditing = editingCell && editingCell.key === row.key && editingCell.field === 'key';
+    
+    if (isEditing) {
+      return (
+        <TextField
+          fullWidth
+          variant="standard"
+          autoFocus
+          value={row.key}
+          onChange={(e) => handleKeyChange(row.key, e.target.value)}
+          onBlur={() => setEditingCell(null)}
+          onKeyDown={(e) => handleKeyDown(e, row.key)}
+          size="small"
+          InputProps={{
+            style: { 
+              fontSize: '0.875rem',
+              padding: '2px 4px',
+              height: '24px',
+              fontWeight: 'bold'
+            }
+          }}
+          sx={{ m: 0 }}
+        />
+      );
+    }
+    
+    return (
+      <Box 
+        onClick={() => startEditingKey(row.key)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: 0.5,
+          minHeight: '24px',
+          cursor: 'pointer',
+          fontSize: '0.875rem',
+          fontWeight: 'bold',
+          '&:hover': { bgcolor: '#f5f5f5' },
+          width: '100%'
+        }}
+      >
+        {row.key}
       </Box>
     );
   };
@@ -306,6 +415,16 @@ function App() {
                       {lang}
                     </TableCell>
                   ))}
+                  <TableCell 
+                    sx={{ 
+                      width: '50px',
+                      padding: '6px 8px',
+                      fontSize: '0.875rem',
+                      textAlign: 'center'
+                    }}
+                  >
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -319,21 +438,45 @@ function App() {
                         left: 0,
                         zIndex: 1,
                         bgcolor: 'white',
-                        fontWeight: 'bold',
                         borderRight: '1px solid #ddd',
-                        padding: '4px 8px',
+                        padding: '0',
                         fontSize: '0.875rem'
                       }}
                     >
-                      {row.key}
+                      {renderKeyCell(row)}
                     </TableCell>
                     {languages.map(lang => (
                       <TableCell key={`${row.key}-${lang}`} sx={{ padding: '0' }}>
                         {renderCell(row, lang)}
                       </TableCell>
                     ))}
+                    <TableCell align="center" sx={{ padding: '0' }}>
+                      <Tooltip title="Delete Row">
+                        <IconButton 
+                          size="small" 
+                          color="error" 
+                          onClick={() => handleDeleteRow(row.key)}
+                          sx={{ padding: '4px' }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 ))}
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell colSpan={languages.length + 2} align="center" sx={{ padding: '8px' }}>
+                    <Button
+                      startIcon={<AddIcon />}
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={handleAddRow}
+                    >
+                      Add Row
+                    </Button>
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
