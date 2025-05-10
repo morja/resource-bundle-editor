@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppBar, Toolbar, Typography, Box, Container, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import SortIcon from '@mui/icons-material/Sort';
 import JSZip from 'jszip';
 import './App.css';
 
@@ -121,6 +122,11 @@ function App() {
     setTimeout(() => {
       setEditingCell({ key: newKey, field: 'key' });
     }, 100);
+  };
+  
+  // Sort rows alphabetically by key
+  const sortRowsAlphabetically = () => {
+    setRowData(prevData => [...prevData].sort((a, b) => a.key.localeCompare(b.key)));
   };
   
   // Start editing a cell
@@ -373,14 +379,26 @@ function App() {
           </Button>
           
           {languages.length > 0 && (
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={downloadAllFiles}
-              sx={{ mr: 2 }}
-            >
-              Download All
-            </Button>
+            <>
+              <Button
+                color="primary"
+                variant="contained"
+                onClick={downloadAllFiles}
+                sx={{ mr: 2 }}
+              >
+                Download All
+              </Button>
+              
+              <Button
+                color="secondary"
+                variant="contained"
+                startIcon={<SortIcon />}
+                onClick={sortRowsAlphabetically}
+                sx={{ mr: 2 }}
+              >
+                Sort Keys
+              </Button>
+            </>
           )}
         </Toolbar>
       </AppBar>
